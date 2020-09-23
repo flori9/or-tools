@@ -1308,11 +1308,13 @@ Status RevisedSimplex::Initialize(const LinearProgram& lp) {
     } else {
       VLOG(1) << "RevisedSimplex is not using the warm start "
                  "basis because it is not factorizable.";
+      LOG(WARNING) << "RevisedSimplex is not using the warm start "
+                 "basis because it is not factorizable.";
     }
   }
 
   if (solve_from_scratch) {
-    VLOG(1) << "Solve from scratch.";
+    VLOG(WARNING) << "Solve from scratch.";
     basis_factorization_.Clear();
     reduced_costs_.ClearAndRemoveCostShifts();
     primal_edge_norms_.Clear();

@@ -67,10 +67,16 @@ SWIG_STD_VECTOR_ENHANCED(CTYPE*);
 %template(TYPE ## Vector) std::vector<CTYPE*>;
 %enddef  // CONVERT_VECTOR
 
+%define CONVERT_VECTOR2(CTYPE, TYPE)
+SWIG_STD_VECTOR_ENHANCED(CTYPE);
+%template(TYPE ## Vector) std::vector<CTYPE>;
+%enddef  // CONVERT_VECTOR
+
 CONVERT_VECTOR(operations_research::MPConstraint, MPConstraint)
 CONVERT_VECTOR(operations_research::MPVariable, MPVariable)
 
 #undef CONVERT_VECTOR
+#undef CONVERT_VECTOR2
 
 %ignoreall
 
@@ -169,6 +175,9 @@ CONVERT_VECTOR(operations_research::MPVariable, MPVariable)
 %unignore operations_research::MPSolver::SetHint(
     const std::vector<operations_research::MPVariable*>&,
     const std::vector<double>&);
+%unignore operations_research::MPSolver::SetStartingLpBasis3(
+    const std::vector<int>&,
+    const std::vector<int>&);
 %unignore operations_research::MPSolver::SetNumThreads;
 %extend operations_research::MPSolver {
   std::string ExportModelAsLpFormat(bool obfuscated) {
@@ -199,6 +208,11 @@ CONVERT_VECTOR(operations_research::MPVariable, MPVariable)
       hint[i] = std::make_pair(variables[i], values[i]);
     }
     $self->SetHint(hint);
+  }
+
+  void SetStartingLpBasis3(const std::vector<int>& variable_statuses,
+    const std::vector<int>& constraint_statuses) {
+    $self->SetStartingLpBasis3(variable_statuses, constraint_statuses);
   }
 
   bool SetNumThreads(int num_theads) {

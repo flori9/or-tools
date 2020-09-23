@@ -659,6 +659,14 @@ class MPSolver {
   void SetStartingLpBasis(
       const std::vector<MPSolver::BasisStatus>& variable_statuses,
       const std::vector<MPSolver::BasisStatus>& constraint_statuses);
+  void SetStartingLpBasis3(
+      const std::vector<int>& variable_statuses,
+      const std::vector<int>& constraint_statuses);
+  void MPSolver::SetStartingLpBasis2(
+    int variable_statuses_len,
+    BasisStatus* variable_statuses,
+    int constraint_statuses_len,
+    BasisStatus* constraint_statuses);
 
   /**
    * Infinity.

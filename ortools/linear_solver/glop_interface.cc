@@ -112,6 +112,10 @@ GLOPInterface::GLOPInterface(MPSolver* const solver)
 
 GLOPInterface::~GLOPInterface() {}
 
+bool knowsStartingBasis = false;
+  glop::VariableStatusRow glop_variable_statuses;
+  glop::ConstraintStatusColumn glop_constraint_statuses;
+
 MPSolver::ResultStatus GLOPInterface::Solve(const MPSolverParameters& param) {
   // Re-extract the problem from scratch. We don't support modifying the
   // LinearProgram in sync with changes done in the MPSolver.
@@ -137,6 +141,11 @@ MPSolver::ResultStatus GLOPInterface::Solve(const MPSolverParameters& param) {
   std::unique_ptr<TimeLimit> time_limit =
       TimeLimit::FromParameters(parameters_);
   time_limit->RegisterExternalBooleanAsLimit(&interrupt_solver_);
+
+  if (knowsStartingBasis) {
+    lp_solver_.SetInitialBasis(glop_variable_statuses, glop_constraint_statuses);
+    knowsStartingBasis = false;
+  }
   const glop::ProblemStatus status =
       lp_solver_.SolveWithTimeLimit(linear_program_, time_limit.get());
 
@@ -322,15 +331,15 @@ void GLOPInterface::ExtractObjective() {
 void GLOPInterface::SetStartingLpBasis(
     const std::vector<MPSolver::BasisStatus>& variable_statuses,
     const std::vector<MPSolver::BasisStatus>& constraint_statuses) {
-  glop::VariableStatusRow glop_variable_statuses;
-  glop::ConstraintStatusColumn glop_constraint_statuses;
+  glop_variable_statuses.clear();
+  glop_constraint_statuses.clear();
   for (const MPSolver::BasisStatus& status : variable_statuses) {
     glop_variable_statuses.push_back(MPSolverToGlopVariableStatus(status));
   }
   for (const MPSolver::BasisStatus& status : constraint_statuses) {
     glop_constraint_statuses.push_back(MPSolverToGlopConstraintStatus(status));
   }
-  lp_solver_.SetInitialBasis(glop_variable_statuses, glop_constraint_statuses);
+  knowsStartingBasis = true;
 }
 
 void GLOPInterface::SetParameters(const MPSolverParameters& param) {

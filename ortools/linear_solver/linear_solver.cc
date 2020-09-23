@@ -1093,6 +1093,24 @@ void MPSolver::SetStartingLpBasis(
   interface_->SetStartingLpBasis(variable_statuses, constraint_statuses);
 }
 
+void MPSolver::SetStartingLpBasis3(
+    const std::vector<int>& variable_statuses,
+    const std::vector<int>& constraint_statuses) {
+  interface_->SetStartingLpBasis(reinterpret_cast<const std::vector<BasisStatus>&>(variable_statuses), 
+    reinterpret_cast<const std::vector<BasisStatus>&>(constraint_statuses));
+}
+
+void MPSolver::SetStartingLpBasis2(
+    int variable_statuses_len,
+    BasisStatus* variable_statuses,
+    int constraint_statuses_len,
+    BasisStatus* constraint_statuses) {
+  std::vector<BasisStatus> var_statuses_vec(variable_statuses, variable_statuses + variable_statuses_len);
+  std::vector<BasisStatus> constraint_statuses_vec(constraint_statuses, constraint_statuses + constraint_statuses_len);
+  
+  interface_->SetStartingLpBasis(var_statuses_vec, constraint_statuses_vec);
+}
+
 MPVariable* MPSolver::MakeVar(double lb, double ub, bool integer,
                               const std::string& name) {
   const int var_index = NumVariables();
