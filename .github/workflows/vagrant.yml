@@ -1,4 +1,4 @@
-name: Vagrant
+name: Vagrant CMake
 
 on: [push, pull_request]
 
@@ -6,6 +6,14 @@ jobs:
   # Only macos runner provide virtualisation with vagrant/virtualbox installed.
   FreeBSD:
     runs-on: macos-latest
+    strategy:
+      matrix:
+        distro: [freebsd]
+        lang: [cpp, python, dotnet, java]
+      fail-fast: false
+    env:
+      DISTRO: ${{ matrix.distro }}
+      LANG: ${{ matrix.lang }}
     steps:
     - uses: actions/checkout@v2
     - name: vagrant version
@@ -13,4 +21,4 @@ jobs:
     - name: VirtualBox version
       run: virtualbox -h
     - name: Build
-      run: make --directory=cmake freebsd
+      run: make --directory=cmake ${DISTRO}_${LANG}
