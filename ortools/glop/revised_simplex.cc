@@ -1314,7 +1314,7 @@ Status RevisedSimplex::Initialize(const LinearProgram& lp) {
   }
 
   if (solve_from_scratch) {
-    VLOG(WARNING) << "Solve from scratch.";
+    LOG(WARNING) << "Solve from scratch.";
     basis_factorization_.Clear();
     reduced_costs_.ClearAndRemoveCostShifts();
     primal_edge_norms_.Clear();
