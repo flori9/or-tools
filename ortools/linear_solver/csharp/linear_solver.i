@@ -178,6 +178,9 @@ CONVERT_VECTOR(operations_research::MPVariable, MPVariable)
 %unignore operations_research::MPSolver::SetStartingLpBasis3(
     const std::vector<int>&,
     const std::vector<int>&);
+%unignore operations_research::MPSolver::SetLpAlgorithm(
+    int
+);
 %unignore operations_research::MPSolver::SetNumThreads;
 %extend operations_research::MPSolver {
   std::string ExportModelAsLpFormat(bool obfuscated) {
@@ -217,6 +220,10 @@ CONVERT_VECTOR(operations_research::MPVariable, MPVariable)
 
   bool SetNumThreads(int num_theads) {
     return $self->SetNumThreads(num_theads).ok();
+  }
+
+  void SetLpAlgorithm(int alg) {
+    $self->SetLpAlgorithm(alg);
   }
 }
 

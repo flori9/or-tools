@@ -1100,6 +1100,12 @@ void MPSolver::SetStartingLpBasis3(
     reinterpret_cast<const std::vector<BasisStatus>&>(constraint_statuses));
 }
 
+void MPSolver::SetLpAlgorithm(
+  int algo
+) {
+  interface_->SetLpAlgorithm(algo);
+}
+
 void MPSolver::SetStartingLpBasis2(
     int variable_statuses_len,
     BasisStatus* variable_statuses,

@@ -112,14 +112,20 @@ GLOPInterface::GLOPInterface(MPSolver* const solver)
 
 GLOPInterface::~GLOPInterface() {}
 
+bool didNonIncrementalChange = true;
+
 MPSolver::ResultStatus GLOPInterface::Solve(const MPSolverParameters& param) {
   // Re-extract the problem from scratch. We don't support modifying the
   // LinearProgram in sync with changes done in the MPSolver.
-  ResetExtractionInformation();
-  linear_program_.Clear();
+  if (didNonIncrementalChange) {
+    ResetExtractionInformation();
+    linear_program_.Clear();
+  }
   interrupt_solver_ = false;
   ExtractModel();
-  SetParameters(param);
+  if (didNonIncrementalChange)
+    SetParameters(param);
+  didNonIncrementalChange = false;
 
   linear_program_.SetMaximizationProblem(maximize_);
   linear_program_.CleanUp();
@@ -215,13 +221,15 @@ void GLOPInterface::AddRowConstraint(MPConstraint* const ct) {
 }
 
 void GLOPInterface::AddVariable(MPVariable* const var) {
-  NonIncrementalChange();
+  //NonIncrementalChange();
+  sync_status_ = MUST_RELOAD;
 }
 
 void GLOPInterface::SetCoefficient(MPConstraint* const constraint,
                                    const MPVariable* const variable,
                                    double new_value, double old_value) {
-  NonIncrementalChange();
+  //NonIncrementalChange();
+  sync_status_ = MUST_RELOAD;
 }
 
 void GLOPInterface::ClearConstraint(MPConstraint* const constraint) {
@@ -230,7 +238,8 @@ void GLOPInterface::ClearConstraint(MPConstraint* const constraint) {
 
 void GLOPInterface::SetObjectiveCoefficient(const MPVariable* const variable,
                                             double coefficient) {
-  NonIncrementalChange();
+  //NonIncrementalChange();
+  sync_status_ = MUST_RELOAD;
 }
 
 void GLOPInterface::SetObjectiveOffset(double value) { NonIncrementalChange(); }
@@ -273,20 +282,36 @@ std::string GLOPInterface::SolverVersion() const {
 void* GLOPInterface::underlying_solver() { return &lp_solver_; }
 
 void GLOPInterface::ExtractNewVariables() {
-  DCHECK_EQ(0, last_variable_index_);
+  //DCHECK_EQ(0, last_variable_index_);
   DCHECK_EQ(0, last_constraint_index_);
 
   const glop::ColIndex num_cols(solver_->variables_.size());
+  const glop::RowIndex num_rows(solver_->constraints_.size());
+  
   for (glop::ColIndex col(last_variable_index_); col < num_cols; ++col) {
     MPVariable* const var = solver_->variables_[col.value()];
     const glop::ColIndex new_col = linear_program_.CreateNewVariable();
     DCHECK_EQ(new_col, col);
     set_variable_as_extracted(col.value(), true);
     linear_program_.SetVariableBounds(col, var->lb(), var->ub());
+
+    //Set coefficients
+    if (! didNonIncrementalChange) {
+      for (glop::RowIndex row(0); row < num_rows; ++row) {
+        MPConstraint* const ct = solver_->constraints_[row.value()];
+
+        const glop::ColIndex col(last_variable_index_);
+        const double coeff = ct->coefficients_[var];
+        linear_program_.SetCoefficient(row, col, coeff);
+      }
+    }
+    last_variable_index_++;
   }
 }
 
 void GLOPInterface::ExtractNewConstraints() {
+  if (!didNonIncrementalChange) return;
+
   DCHECK_EQ(0, last_constraint_index_);
 
   const glop::RowIndex num_rows(solver_->constraints_.size());
@@ -428,6 +453,8 @@ bool GLOPInterface::SetSolverSpecificParametersAsString(
 void GLOPInterface::NonIncrementalChange() {
   // The current implementation is not incremental.
   sync_status_ = MUST_RELOAD;
+  last_variable_index_ = 0;
+  didNonIncrementalChange = true;
 }
 
 // Register GLOP in the global linear solver factory.

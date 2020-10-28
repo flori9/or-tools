@@ -194,6 +194,7 @@ bool AreFirstColumnsAndRowsExactlyEquals(RowIndex num_rows, ColIndex num_cols,
   DCHECK(matrix_a.IsCleanedUp());
   if (num_rows > matrix_a.num_rows() || num_rows > matrix_b.num_rows() ||
       num_cols > matrix_a.num_cols() || num_cols > matrix_b.num_cols()) {
+        //LOG(WARNING) << "W1";
     return false;
   }
   for (ColIndex col(0); col < num_cols; ++col) {
@@ -201,26 +202,37 @@ bool AreFirstColumnsAndRowsExactlyEquals(RowIndex num_rows, ColIndex num_cols,
     const ColumnView& col_b = matrix_b.column(col);
     const EntryIndex end = std::min(col_a.num_entries(), col_b.num_entries());
     if (end < col_a.num_entries() && col_a.EntryRow(end) < num_rows) {
+        //LOG(WARNING) << "W2";
       return false;
     }
     if (end < col_b.num_entries() && col_b.EntryRow(end) < num_rows) {
+        //LOG(WARNING) << "W3";
       return false;
     }
     for (EntryIndex i(0); i < end; ++i) {
       if (col_a.EntryRow(i) != col_b.EntryRow(i)) {
         if (col_a.EntryRow(i) < num_rows || col_b.EntryRow(i) < num_rows) {
+        /*LOG(WARNING) << col_a.EntryRow(i);
+        LOG(WARNING) << col_b.EntryRow(i);
+        LOG(WARNING) << num_rows;
+        LOG(WARNING) << "W4";*/
           return false;
         } else {
           break;
         }
       }
       if (col_a.EntryCoefficient(i) != col_b.EntryCoefficient(i)) {
+        // LOG(WARNING) << col_a.EntryCoefficient(i);
+        // LOG(WARNING) << col_b.EntryCoefficient(i);
+        // LOG(WARNING) << "W5";
         return false;
       }
       if (col_a.num_entries() > end && col_a.EntryRow(end) < num_rows) {
+        // LOG(WARNING) << "W6";
         return false;
       }
       if (col_b.num_entries() > end && col_b.EntryRow(end) < num_rows) {
+        // LOG(WARNING) << "W7";
         return false;
       }
     }

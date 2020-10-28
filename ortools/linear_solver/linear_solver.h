@@ -662,6 +662,9 @@ class MPSolver {
   void SetStartingLpBasis3(
       const std::vector<int>& variable_statuses,
       const std::vector<int>& constraint_statuses);
+  void SetLpAlgorithm(
+      int algo
+  );
   void MPSolver::SetStartingLpBasis2(
     int variable_statuses_len,
     BasisStatus* variable_statuses,
@@ -1811,6 +1814,8 @@ class MPSolverInterface {
   // Sets the scaling mode.
   virtual void SetScalingMode(int value) = 0;
   virtual void SetLpAlgorithm(int value) = 0;
+
+
 };
 
 }  // namespace operations_research

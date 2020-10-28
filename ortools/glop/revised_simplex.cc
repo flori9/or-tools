@@ -731,6 +731,8 @@ bool RevisedSimplex::InitializeMatrixAndTestIfUnchanged(
   const bool old_part_of_matrix_is_unchanged =
       AreFirstColumnsAndRowsExactlyEquals(
           num_rows_, first_slack_col_, lp.GetSparseMatrix(), compact_matrix_);
+  //if (! old_part_of_matrix_is_unchanged)
+  //  LOG(WARNING) << "not old_part_of_matrix_is_unchanged";
 
   // Test if the matrix is unchanged, and if yes, just returns true. Note that
   // this doesn't check the columns corresponding to the slack variables,
@@ -1226,11 +1228,13 @@ Status RevisedSimplex::Initialize(const LinearProgram& lp) {
       // new columns have a bound equal to zero.
       dual_edge_norms_.Clear();
       dual_pricing_vector_.clear();
+      LOG(WARNING) << "Quick incremental solve.";
       if (matrix_is_unchanged && bounds_are_unchanged) {
         // TODO(user): Do not do that if objective_is_unchanged. Currently
         // this seems to break something. Investigate.
         reduced_costs_.ClearAndRemoveCostShifts();
         solve_from_scratch = false;
+        LOG(WARNING) << "(matrix_is_unchanged && bounds_are_unchanged)";
       } else if (only_change_is_new_cols && only_new_bounds) {
         InitializeVariableStatusesForWarmStart(solution_state_, num_new_cols);
         const ColIndex first_new_col(first_slack_col_ - num_new_cols);
@@ -1246,8 +1250,15 @@ Status RevisedSimplex::Initialize(const LinearProgram& lp) {
         primal_edge_norms_.Clear();
         reduced_costs_.ClearAndRemoveCostShifts();
         solve_from_scratch = false;
+        //LOG(WARNING) << "(only_change_is_new_cols && only_new_bounds)";
+      } else {
+        //if (! only_change_is_new_cols)
+        //  LOG(WARNING) << "(!only_change_is_new_cols)";
+        //if (! only_new_bounds)
+        //  LOG(WARNING) << "(!only_new_bounds)";
       }
     } else {
+      //LOG(WARNING) << "(dual simplex).";
       // With dual simplex, always clear primal norms. Incrementality is
       // supported only if the objective remains the same (the matrix may
       // contain new rows and the bounds may change).
@@ -1308,13 +1319,12 @@ Status RevisedSimplex::Initialize(const LinearProgram& lp) {
     } else {
       VLOG(1) << "RevisedSimplex is not using the warm start "
                  "basis because it is not factorizable.";
-      LOG(WARNING) << "RevisedSimplex is not using the warm start "
-                 "basis because it is not factorizable.";
     }
   }
 
   if (solve_from_scratch) {
-    LOG(WARNING) << "Solve from scratch.";
+    VLOG(1) << "Solve from scratch.";
+    //LOG(WARNING) << "Solve from scratch.";
     basis_factorization_.Clear();
     reduced_costs_.ClearAndRemoveCostShifts();
     primal_edge_norms_.Clear();
@@ -1323,6 +1333,7 @@ Status RevisedSimplex::Initialize(const LinearProgram& lp) {
     GLOP_RETURN_IF_ERROR(CreateInitialBasis());
   } else {
     VLOG(1) << "Incremental solve.";
+    //LOG(WARNING) << "Incremental solve.";
   }
   DCHECK(BasisIsConsistent());
   return Status::OK();
